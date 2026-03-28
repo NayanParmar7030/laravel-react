@@ -12,9 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('leads', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        $table->id();
+        $table->string('name');
+        $table->string('email')->unique();
+        $table->string('phone')->nullable();
+        $table->string('status')->default('new'); // new, contacted, converted
+        $table->timestamps();
+});
     }
 
     /**
