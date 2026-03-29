@@ -1,41 +1,44 @@
 <?php
 
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Invalid credentials'
-            ], 401);
+        if (! Auth::attempt($request->only('email', 'password'))) {
+            return $this->error('Invalid credentials', 401);
         }
 
-        $user = User::where('email', $request->email)->first();
+        /** @var User $user */
+        $user = User::where('email', $request->email)->firstOrFail();
 
-        $token = $user->createToken('crm_token')->plainTextToken;
+        $user->tokens()->delete();
+        $token = $user->createToken('api')->plainTextToken;
 
-        return response()->json([
+        return $this->success([
             'user' => $user,
             'roles' => $user->getRoleNames(),
-            'token' => $token
-        ]);
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'token' => $token,
+        ], 'Authenticated');
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
-        return response()->json([
-            'message' => 'Logged out'
-        ]);
+
+        return $this->success([], 'Logged out');
     }
 }

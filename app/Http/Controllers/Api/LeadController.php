@@ -3,30 +3,61 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LeadRequest;
+use App\Http\Resources\LeadResource;
+use App\Models\Lead;
 use App\Services\LeadService;
-use App\Http\Requests\StoreLeadRequest;
+use Illuminate\Http\JsonResponse;
 
-class LeadController extends Controller {
+class LeadController extends Controller
+{
+    public function __construct(
+        protected LeadService $service
+    ) {}
 
-    protected $service;
+    public function index(): JsonResponse
+    {
+        $paginator = $this->service->getLeads();
 
-    public function __construct(LeadService $service) {
-        $this->service = $service;
+        return $this->success(
+            LeadResource::collection($paginator)->resolve(),
+            'Leads retrieved'
+        );
     }
 
-    public function index() {
-        return $this->service->getLeads();
+    public function show(Lead $lead): JsonResponse
+    {
+        return $this->success(
+            (new LeadResource($lead))->resolve(),
+            'Lead retrieved'
+        );
     }
 
-    public function store(StoreLeadRequest $request) {
-        return $this->service->createLead($request->validated());
+    public function store(LeadRequest $request): JsonResponse
+    {
+        $lead = $this->service->createLead($request->validated());
+
+        return $this->success(
+            (new LeadResource($lead))->resolve(),
+            'Lead created',
+            201
+        );
     }
 
-    public function update(StoreLeadRequest $request, $id) {
-        return $this->service->updateLead($id, $request->validated());
+    public function update(LeadRequest $request, Lead $lead): JsonResponse
+    {
+        $lead = $this->service->updateLead($lead->id, $request->validated());
+
+        return $this->success(
+            (new LeadResource($lead))->resolve(),
+            'Lead updated'
+        );
     }
 
-    public function destroy($id) {
-        return $this->service->deleteLead($id);
+    public function destroy(Lead $lead): JsonResponse
+    {
+        $this->service->deleteLead($lead->id);
+
+        return $this->success([], 'Lead deleted');
     }
 }

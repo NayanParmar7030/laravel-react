@@ -1,19 +1,31 @@
 <?php
 
-trait ApiResponse {
+namespace App\Traits;
 
-    public function success($data, $message = 'Success', $code = 200) {
+use Illuminate\Http\JsonResponse;
+
+trait ApiResponse
+{
+    public function success(mixed $data, string $message = 'Success', int $code = 200): JsonResponse
+    {
         return response()->json([
             'status' => true,
             'message' => $message,
-            'data' => $data
+            'data' => $data,
         ], $code);
     }
 
-    public function error($message = 'Error', $code = 400) {
-        return response()->json([
+    public function error(string $message = 'Error', int $code = 400, ?array $errors = null): JsonResponse
+    {
+        $payload = [
             'status' => false,
-            'message' => $message
-        ], $code);
+            'message' => $message,
+        ];
+
+        if ($errors !== null) {
+            $payload['errors'] = $errors;
+        }
+
+        return response()->json($payload, $code);
     }
 }

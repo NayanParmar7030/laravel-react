@@ -1,0 +1,277 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Laravel API v1",
+		"description": "Laravel Sanctum API.\n\n**base_url:** Must match how you open the app (no trailing slash).\n- `php artisan serve`: `http://127.0.0.1:8000`\n- **WAMP:** often `http://localhost/laravel-react/public` (include `/public` unless the vhost points at the `public` folder).\n\n**Login:** Uses `POST /api/login` (also available as `POST /api/v1/login`). Method must be **POST** with JSON body.\n\nRun **Auth → Login**; the test script saves `token`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "lead_id",
+			"value": "1"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"try {",
+									"  const json = pm.response.json();",
+									"  if (json.data && json.data.token) {",
+									"    pm.collectionVariables.set('token', json.data.token);",
+									"    console.log('Saved token to collection variable');",
+									"  }",
+									"} catch (e) { console.log(e); }"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login"
+						},
+						"description": "Returns Bearer token in `data.token`. Must be **POST**, not GET."
+					},
+					"response": []
+				},
+				{
+					"name": "Current user (profile)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/user"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/logout"
+						},
+						"description": "Revokes the current access token."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Leads",
+			"description": "Requires `manage_leads` permission (e.g. admin). Use Bearer `{{token}}` from Login.",
+			"item": [
+				{
+					"name": "List leads",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/leads?page=1"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create lead",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"phone\": \"+1 555 0100\",\n  \"status\": \"new\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/leads"
+						},
+						"description": "`status`: optional — `new` | `contacted` | `converted`"
+					},
+					"response": []
+				},
+				{
+					"name": "Show lead",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/leads/{{lead_id}}"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update lead",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane.updated@example.com\",\n  \"phone\": \"+1 555 0199\",\n  \"status\": \"contacted\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/leads/{{lead_id}}"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete lead",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/leads/{{lead_id}}"
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
