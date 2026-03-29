@@ -22,8 +22,16 @@ class StoreLeadRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-             'name' => 'required|string',
-          ];  
+            return [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:leads',
+            ]; 
+    }
+
+    protected function prepareForValidation() {
+        $this->merge([
+            'name' => strip_tags($this->name),
+            'email' => strtolower($this->email),
+        ]);
     }
 }

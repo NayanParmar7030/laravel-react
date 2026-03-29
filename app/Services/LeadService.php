@@ -2,6 +2,7 @@
 
 namespace App\Services;
 use App\Repositories\LeadRepositoryInterface;
+use Illuminate\Support\Facades\Cache;
 
 class LeadService {
 
@@ -12,7 +13,10 @@ class LeadService {
     }
 
     public function getLeads() {
-        return $this->repo->getAll();
+        // return $this->repo->getAll();
+        return Cache::remember('leads', 60, function () {
+            return $this->repo->getAll();
+        });
     }
 
     public function createLead($data) {
